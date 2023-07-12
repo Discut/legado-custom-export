@@ -54,6 +54,9 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     private val groupList: ArrayList<BookGroup> = arrayListOf()
     private var groupId: Long = -1
 
+    // 匹配待“输入的章节”字符串
+    private val regexEpisode =  Regex("\\d+(-\\d+)?(,\\d+(-\\d+)?)*")
+
     private val exportDir = registerForActivityResult(HandleFileContract()) { result ->
         result.uri?.let { uri ->
             if (uri.isContentScheme()) {
@@ -345,7 +348,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
      * @return 是否正确
      */
     private fun verificationField(text: String): Boolean {
-        return text.matches(Regex("\\d+(-\\d+)?(,\\d+(-\\d+)?)*"))
+        return text.matches(regexEpisode)
     }
 
     private fun selectExportFolder(exportPosition: Int) {
