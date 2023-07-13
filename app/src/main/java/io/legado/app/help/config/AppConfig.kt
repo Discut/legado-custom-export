@@ -132,6 +132,13 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
             appCtx.putPrefString(PreferKey.bookExportFileName, value)
         }
 
+    // 保存 自定义导出章节模式 文件名js表达式
+    var episodeExportFileName: String?
+        get() = appCtx.getPrefString(PreferKey.episodeExportFileName)
+        set(value) {
+            appCtx.putPrefString(PreferKey.episodeExportFileName, value)
+        }
+
     var bookImportFileName: String?
         get() = appCtx.getPrefString(PreferKey.bookImportFileName)
         set(value) {
