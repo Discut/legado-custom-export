@@ -8,10 +8,12 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.textfield.TextInputLayout
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.charsets
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
@@ -20,7 +22,9 @@ import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.ActivityCacheBookBinding
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogSelectSectionExportBinding
+import io.legado.app.help.book.getExportFileName
 import io.legado.app.help.book.isAudio
+import io.legado.app.help.book.tryParesExportFileName
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.SelectItem
 import io.legado.app.lib.dialogs.alert
@@ -55,7 +59,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     private var groupId: Long = -1
 
     // 匹配待“输入的章节”字符串
-    private val regexEpisode =  Regex("\\d+(-\\d+)?(,\\d+(-\\d+)?)*")
+    private val regexEpisode = Regex("\\d+(-\\d+)?(,\\d+(-\\d+)?)*")
 
     private val exportDir = registerForActivityResult(HandleFileContract()) { result ->
         result.uri?.let { uri ->
@@ -277,9 +281,47 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
      * @since 1.0.0
      */
     private fun configExportSection(path: String, position: Int) {
+
+
         val alertBinding = DialogSelectSectionExportBinding.inflate(layoutInflater)
             .apply {
+                fun verifyExportFileNameJsStr(js: String): Boolean {
+                    return tryParesExportFileName(js) && etEpubFilename.text.toString()
+                        .isNotEmpty()
+                }
+
+                fun enableLyEtEpubFilenameIcon() {
+                    lyEtEpubFilename.endIconMode = TextInputLayout.END_ICON_CUSTOM
+                    lyEtEpubFilename.setEndIconOnClickListener {
+                        adapter.getItem(position)?.run {
+                            lyEtEpubFilename.helperText =
+                                if (verifyExportFileNameJsStr(etEpubFilename.text.toString()))
+                                    getExportFileName(
+                                        "epub",
+                                        1,
+                                        etEpubFilename.text.toString()
+                                    ) else "Error"
+                        } ?: run {
+                            lyEtEpubFilename.helperText = "Error"
+                            AppLog.put("未找到书籍，position is $position")
+                        }
+                    }
+                }
                 etEpubSize.setText("1")
+                // lyEtEpubFilename.endIconMode = TextInputLayout.END_ICON_NONE
+                etEpubFilename.text?.append(AppConfig.episodeExportFileName)
+                // 存储解析文件名的jsStr
+                etEpubFilename.let {
+                    it.setOnFocusChangeListener { _, hasFocus ->
+                        if (hasFocus)
+                            return@setOnFocusChangeListener
+                        it.text?.run {
+                            if (verifyExportFileNameJsStr(toString())) {
+                                AppConfig.episodeExportFileName = toString()
+                            }
+                        }
+                    }
+                }
                 tvAllExport.setOnClickListener {
                     cbAllExport.callOnClick()
                 }
@@ -290,6 +332,8 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                     if (isChecked) {
                         etEpubSize.isEnabled = true
                         etInputScope.isEnabled = true
+                        etEpubFilename.isEnabled = true
+                        enableLyEtEpubFilenameIcon()
                         cbAllExport.isChecked = false
                     }
                 }
@@ -297,6 +341,8 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                     if (isChecked) {
                         etEpubSize.isEnabled = false
                         etInputScope.isEnabled = false
+                        etEpubFilename.isEnabled = false
+                        lyEtEpubFilename.endIconMode = TextInputLayout.END_ICON_NONE
                         cbSelectExport.isChecked = false
                     }
                 }
@@ -309,7 +355,9 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                             etInputScope.hint = ""
                         }
                     }
-                cbAllExport.callOnClick()
+
+                // 默认选择自定义导出
+                cbSelectExport.callOnClick()
             }
         val alertDialog = alert(titleResource = R.string.select_section_export) {
             customView { alertBinding.root }
@@ -400,11 +448,11 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     @SuppressLint("SetTextI18n")
     private fun alertExportFileName() {
         alert(R.string.export_file_name) {
-            var message =
-                "js内有name和author变量,返回书名\n启用自定义epub导出章节时包含额外变量[epubIndex]"
-            if (AppConfig.bookExportFileName.isNullOrBlank()) {
-                message += "\n例如：\nname+\"-\"+author+(epubIndex?\"(\"+epubIndex+\")\":\"\")"
-            }
+            val message =
+                "Variable: name, author."
+//            if (AppConfig.bookExportFileName.isNullOrBlank()) {
+//                message += "\n例如：\nname+\"-\"+author+(epubIndex?\"(\"+epubIndex+\")\":\"\")"
+//            }
             setMessage(message)
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.hint = "file name js"
