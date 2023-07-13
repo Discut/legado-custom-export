@@ -686,7 +686,6 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                             asyncBlocks.add(asyncBlock)
                         }
                         asyncBlocks.forEach { it.await() }
-                        AppLog.put("TimeConsuming ${System.currentTimeMillis() - currentTimeMillis}")
                     }
 
                     false -> {
@@ -717,6 +716,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                         }
                     }
                 }
+                AppLog.put("TimeConsuming ${System.currentTimeMillis() - currentTimeMillis}")
             }.onError {
                 context.exportProgress.remove(book.bookUrl)
                 context.exportMsg[book.bookUrl] = it.localizedMessage ?: "ERROR"
