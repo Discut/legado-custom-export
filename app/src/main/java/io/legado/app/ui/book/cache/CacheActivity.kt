@@ -296,11 +296,14 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                         adapter.getItem(position)?.run {
                             lyEtEpubFilename.helperText =
                                 if (verifyExportFileNameJsStr(etEpubFilename.text.toString()))
-                                    getExportFileName(
-                                        "epub",
-                                        1,
-                                        etEpubFilename.text.toString()
-                                    ) else "Error"
+                                    "${resources.getString(R.string.result_analyzed)}: ${
+                                        getExportFileName(
+                                            "epub",
+                                            1,
+                                            etEpubFilename.text.toString()
+                                        )
+                                    }"
+                                else "Error"
                         } ?: run {
                             lyEtEpubFilename.helperText = "Error"
                             AppLog.put("未找到书籍，position is $position")
