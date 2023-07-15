@@ -134,7 +134,7 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
 
     // 保存 自定义导出章节模式 文件名js表达式
     var episodeExportFileName: String?
-        get() = appCtx.getPrefString(PreferKey.episodeExportFileName)
+        get() = appCtx.getPrefString(PreferKey.episodeExportFileName, "")
         set(value) {
             appCtx.putPrefString(PreferKey.episodeExportFileName, value)
         }
