@@ -62,7 +62,7 @@
             android:layout_marginTop="12dp"
             android:hint="@string/export_file_name"
             app:endIconCheckable="true"
-            app:endIconContentDescription="..."
+            app:endIconContentDescription="Execute script"
             app:endIconDrawable="@drawable/ic_play_24dp"
             app:endIconMode="custom"
             app:helperText="Variable: name, author, epubIndex">

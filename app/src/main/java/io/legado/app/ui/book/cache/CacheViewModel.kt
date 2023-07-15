@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.ArraySet
-import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
@@ -692,7 +691,6 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                                 save2Drive(filename, epubBook, doc) { total, progress ->
                                     //写入硬盘时更新进度条
                                     progressBar += book.totalChapterNum.toDouble() / epubList.size / total / 2
-                                    Log.i("progress", "$progressBar:$total:$progress")
                                     context.upAdapterLiveData.postValue(book.bookUrl)
                                     context.exportProgress[book.bookUrl] = progressBar.toInt()
                                 }
@@ -725,7 +723,6 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                                 save2Drive(filename, epubBook, file) { total, progress ->
                                     //设置进度
                                     progressBar += book.totalChapterNum.toDouble() / epubList.size / total / 2
-                                    Log.i("progress", "$progressBar:$total:$progress")
                                     context.upAdapterLiveData.postValue(book.bookUrl)
                                     context.exportProgress[book.bookUrl] = progressBar.toInt()
                                 }
