@@ -58,20 +58,29 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     private val groupList: ArrayList<BookGroup> = arrayListOf()
     private var groupId: Long = -1
 
-    // 匹配待“输入的章节”字符串
-    private val regexEpisode = Regex("\\d+(-\\d+)?(,\\d+(-\\d+)?)*")
-
     private val exportDir = registerForActivityResult(HandleFileContract()) { result ->
+        var isReadyPath = false
+        var dirPath = ""
         result.uri?.let { uri ->
             if (uri.isContentScheme()) {
                 ACache.get().put(exportBookPathKey, uri.toString())
-                startExport(uri.toString(), result.requestCode)
+                dirPath = uri.toString()
+                isReadyPath = true
             } else {
                 uri.path?.let { path ->
                     ACache.get().put(exportBookPathKey, path)
-                    startExport(path, result.requestCode)
+                    dirPath = path
+                    isReadyPath = true
                 }
             }
+        }
+        if (!isReadyPath) {
+            return@registerForActivityResult
+        }
+        if (enableCustomExport()) {// 启用自定义导出 and 导出类型为Epub
+            configExportSection(dirPath, result.requestCode)
+        } else {
+            startExport(dirPath, result.requestCode)
         }
     }
 
@@ -256,7 +265,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         val path = ACache.get().getAsString(exportBookPathKey)
         if (path.isNullOrEmpty()) {
             selectExportFolder(position)
-        } else if (AppConfig.enableCustomExport && AppConfig.exportType == 1) {// 启用自定义导出 and 导出类型为Epub
+        } else if (enableCustomExport()) {// 启用自定义导出 and 导出类型为Epub
             configExportSection(path, position)
         } else {
             startExport(path, position)
@@ -390,17 +399,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         }
     }
 
-    /**
-     * 验证 输入的范围 是否正确
-     *
-     * @since 1.0.0
-     * @author Discut
-     * @param text 输入的范围 字符串
-     * @return 是否正确
-     */
-    private fun verificationField(text: String): Boolean {
-        return text.matches(regexEpisode)
-    }
+
 
     private fun selectExportFolder(exportPosition: Int) {
         val default = arrayListOf<SelectItem<Int>>()
