@@ -176,6 +176,10 @@ abstract class PageDelegate(protected val readView: ReadView) {
             readView.callBack.autoPageStop()
             if (!snackBar.isShown) {
                 snackBar.setText(R.string.no_next_page)
+                snackBar.setAction(R.string.close){
+                    snackBar.dismiss()
+                }
+                snackBar.setActionTextColor(context.getColor(R.color.md_dark_primary_text))
                 snackBar.show()
             }
         }
